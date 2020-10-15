@@ -1,11 +1,11 @@
-# Very short description of the package
+# Export and import translations with ease
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/gnahotelsolutions/laravel-i18n-manager.svg?style=flat-square)](https://packagist.org/packages/gnahotelsolutions/laravel-i18n-manager)
 [![Build Status](https://img.shields.io/travis/gnahotelsolutions/laravel-i18n-manager/master.svg?style=flat-square)](https://travis-ci.org/gnahotelsolutions/laravel-i18n-manager)
 [![Quality Score](https://img.shields.io/scrutinizer/g/gnahotelsolutions/laravel-i18n-manager.svg?style=flat-square)](https://scrutinizer-ci.com/g/gnahotelsolutions/laravel-i18n-manager)
 [![Total Downloads](https://img.shields.io/packagist/dt/gnahotelsolutions/laravel-i18n-manager.svg?style=flat-square)](https://packagist.org/packages/gnahotelsolutions/laravel-i18n-manager)
 
-This is where your description should go. Try and limit it to a paragraph or two, and maybe throw in a mention of what PSRs you support to avoid any confusion with users and contributors.
+Use this package to export your translations into an easy-to-use CSV format. Also you can export only those texts that are not yet translated in the rest of your locales.
 
 ## Installation
 
@@ -17,9 +17,25 @@ composer require gnahotelsolutions/laravel-i18n-manager
 
 ## Usage
 
+Export all translations for all locales based on English:
+
 ``` php
-// Usage description here
+php artisan i18n:export --from=en
 ```
+
+Export only missing translations in Catalan based on English:
+
+```php
+php artisan i18n:export --missing --from=en --to=ca
+```
+
+Import translations for all locales:
+
+```php
+php artisan i18n:import --file=path/to/file.zip
+```
+
+> ⚠️ The ZIP file must be in the same format as the exported one. It should contain a folder for each locale and the individual files inside just like the regular `resources/lang` laravel folder
 
 ### Testing
 
