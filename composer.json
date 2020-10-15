@@ -1,0 +1,53 @@
+{
+    "name": "gnahotelsolutions/laravel-i18n-manager",
+    "description": "Export and import your missing translations in an easy-to-use CSV format.",
+    "keywords": [
+        "gnahotelsolutions",
+        "laravel-i18n-manager",
+        "translations",
+        "localization"
+    ],
+    "homepage": "https://github.com/gnahotelsolutions/laravel-i18n-manager",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "David Llop",
+            "email": "dllop@gnahs.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^7.1",
+        "illuminate/support": "^6.0|^7.0|^8.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^4.0",
+        "phpunit/phpunit": "^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "GNAHotelSolutions\\LaravelI18nManager\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "GNAHotelSolutions\\LaravelI18nManager\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "GNAHotelSolutions\\LaravelI18nManager\\I18nManagerServiceProvider"
+            ]
+        }
+    }
+}
