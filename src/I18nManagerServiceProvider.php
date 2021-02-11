@@ -1,7 +1,8 @@
 <?php
 
-namespace Gnahotelsolutions\LaravelI18nExporter;
+namespace GNAHotelSolutions\LaravelI18nManager;
 
+use GNAHotelSolutions\LaravelI18nManager\Commands\Exportcommand;
 use Illuminate\Support\ServiceProvider;
 
 class I18nManagerServiceProvider extends ServiceProvider
@@ -15,6 +16,7 @@ class I18nManagerServiceProvider extends ServiceProvider
 
 
             $this->commands([
+                Exportcommand::class
             ]);
         }
     }
