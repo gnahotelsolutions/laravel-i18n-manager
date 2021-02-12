@@ -19,6 +19,8 @@ class ExportCommand extends Command
     public string $path;
     public Collection $locales;
 
+    public $file;
+
     public function __construct(protected Filesystem $fs, protected Translator $translator)
     {
         parent::__construct();
@@ -29,30 +31,44 @@ class ExportCommand extends Command
 
     public function handle()
     {
-        $this->locales = $this->getLocalesFromDirectories();
+        $this->loadLocalesFromDirectories();
 
-        $rows = $this->getCsvHeader()
-            ->merge($this->getAllTranslationKeys()->map(
-                fn(string $key) => [$key, ...$this->convertKeyToTranslations($key)]
-            ));
+        $this->prepareFile();
 
-        // TODO: Save the CSV file as {project name}.csv
+        $this->getAllTranslationKeys()->each(
+            fn(string $key) => $this->writeToFile([$key, ...$this->translateAll($key)])
+        );
 
+        fclose($this->file);
     }
 
-    protected function getLocalesFromDirectories(): Collection
+    protected function loadLocalesFromDirectories(): void
     {
-        return collect($this->fs->directories($this->path))->map(fn(string $path) => Str::afterLast($path, '/'));
+        $this->locales = collect($this->fs->directories($this->path))->map(fn(string $path) => Str::afterLast($path, '/'));
     }
 
-    protected function getCsvHeader(): Collection
+    protected function prepareFile(): void
     {
-        return collect(['key', ...$this->locales]);
+        $this->file = fopen($this->getFilePath(), 'w');
+
+        fprintf($this->file, "\xEF\xBB\xBF");
+
+        $this->writeToFile(['key', ...$this->locales]);
+    }
+
+    protected function writeToFile(array $row): void
+    {
+        fputcsv($this->file, $row, ';');
+    }
+
+    protected function getFilePath(): string
+    {
+        return storage_path('translations.csv');
     }
 
     protected function getAllTranslationKeys(): Collection
     {
-        return $this->locales->flatMap(fn(string $locale) => $this->getTranslationsForLocale($locale))->filter()->keys();
+        return $this->locales->flatMap(fn(string $locale) => $this->getTranslationsForLocale($locale))->filter()->keys()->sort();
     }
 
     protected function getTranslationsForLocale(string $locale): Collection
@@ -73,12 +89,12 @@ class ExportCommand extends Command
         );
     }
 
-    protected function convertKeyToTranslations(string $key): Collection
+    protected function translateAll(string $key): Collection
     {
-        return $this->locales->map(fn(string $locale) => $this->convertKeyToTranslation($key, $locale));
+        return $this->locales->map(fn(string $locale) => $this->translate($key, $locale));
     }
 
-    protected function convertKeyToTranslation(string $key, string $locale): string
+    protected function translate(string $key, string $locale): string
     {
         return $this->translator->has($key, $locale, false)
             ? $this->translator->get($key, [], $locale)
