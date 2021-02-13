@@ -39,7 +39,9 @@ class ExportCommand extends Command
             fn(string $key) => $this->writeToFile([$key, ...$this->translateAll($key)])
         );
 
-        fclose($this->file);
+        $this->closeFile();
+
+        $this->info("Your translations file is ready. You can find it at {$this->getFilePath()}");
     }
 
     protected function loadLocalesFromDirectories(): void
@@ -59,6 +61,11 @@ class ExportCommand extends Command
     protected function writeToFile(array $row): void
     {
         fputcsv($this->file, $row, ';');
+    }
+
+    protected function closeFile(): void
+    {
+        fclose($this->file);
     }
 
     protected function getFilePath(): string
