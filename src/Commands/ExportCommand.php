@@ -8,11 +8,10 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Translation\Translator;
-use Symfony\Component\Finder\SplFileInfo;
 
 class ExportCommand extends Command
 {
-    protected $signature = 'i18n:export';
+    protected $signature = 'i18n:export {--F|file=}';
 
     protected $description = 'Export your translations into a single CSV file.';
 
@@ -33,15 +32,15 @@ class ExportCommand extends Command
     {
         $this->loadLocalesFromDirectories();
 
-        $this->prepareFile();
+        $this->createOutputFile();
 
         $this->getAllTranslationKeys()->each(
-            fn(string $key) => $this->writeToFile([$key, ...$this->translateAll($key)])
+            fn(string $key) => $this->writeOutput([$key, ...$this->translateAll($key)])
         );
 
         $this->closeFile();
 
-        $this->info("Your translations file is ready. You can find it at {$this->getFilePath()}");
+        $this->info("Your translations file is ready. You can find it at {$this->getOutputPath()}");
     }
 
     protected function loadLocalesFromDirectories(): void
@@ -49,16 +48,16 @@ class ExportCommand extends Command
         $this->locales = collect($this->fs->directories($this->path))->map(fn(string $path) => Str::afterLast($path, '/'));
     }
 
-    protected function prepareFile(): void
+    protected function createOutputFile(): void
     {
-        $this->file = fopen($this->getFilePath(), 'w');
+        $this->file = fopen($this->getOutputPath(), 'w');
 
         fprintf($this->file, "\xEF\xBB\xBF");
 
-        $this->writeToFile(['key', ...$this->locales]);
+        $this->writeOutput(['key', ...$this->locales]);
     }
 
-    protected function writeToFile(array $row): void
+    protected function writeOutput(array $row): void
     {
         fputcsv($this->file, $row, ';');
     }
@@ -68,7 +67,7 @@ class ExportCommand extends Command
         fclose($this->file);
     }
 
-    protected function getFilePath(): string
+    protected function getOutputPath(): string
     {
         return storage_path('translations.csv');
     }
@@ -80,19 +79,30 @@ class ExportCommand extends Command
 
     protected function getTranslationsForLocale(string $locale): Collection
     {
-        return $this->getFilesForLocale($locale)->flatMap(fn(SplFileInfo $file) => $this->getFileContent($file));
+        return $this->getFilesForLocale($locale)->flatMap(fn(\SplFileInfo $file) => $this->getFileContent($file));
     }
 
     protected function getFilesForLocale(string $locale): Collection
     {
+        if ($this->hasOption('file')) {
+            return file_exists($this->getFileForLocale($locale))
+                ? collect([new \SplFileInfo($this->getFileForLocale($locale))])
+                : collect();
+        }
+
         return collect($this->fs->files("{$this->path}/{$locale}"));
     }
 
-    protected function getFileContent(SplFileInfo $file): array
+    protected function getFileForLocale(string $locale): string
+    {
+        return "{$this->path}/{$locale}/{$this->option('file')}.php";
+    }
+
+    protected function getFileContent(\SplFileInfo $file): array
     {
         return Arr::dot(
             include($file),
-            "{$file->getFilenameWithoutExtension()}."
+            pathinfo($file->getFilename(), \PATHINFO_FILENAME)."."
         );
     }
 
